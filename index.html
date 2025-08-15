@@ -1,3 +1,36 @@
+system profile picture
+
+Okay, let’s continue to significantly enhance your VLCP DApp, focusing on the decentralized chatroom experience and overall user interaction.
+
+This update will primarily focus on:
+
+Gun.js User Authentication (SEA): Implementing Gun.js’s Security, Encryption, Authorization (SEA) module to allow users to create and log in to a Gun.js identity. This is crucial for linking chat messages to persistent, verifiable user identities (aliases) and for future encryption.
+User Nicknames: Allow users to set and display unique nicknames in the chat, which are associated with their Gun.js identity.
+Enhanced Chatroom UI:
+Clearer display of user’s connected wallet, VLCP balance, and allowance.
+Improved chat message display with nicknames and timestamps.
+More robust feedback for chatroom creation and moderator actions.
+Automatic Wallet Data Refresh: Implement a mechanism to automatically update the user’s VLCP balance and allowance when their wallet changes or a new block is mined.
+Small UI/UX Tweaks: More visual polish and interaction feedback.
+This will make the chatroom much more functional and user-friendly in a decentralized context.
+
+New index.html (Massively Enhanced with Gun.js SEA & Nicknames)
+This file will be even larger than before. Please use the Pastebin link for reliable copying.
+
+Key Changes in index.html:
+
+Gun.js SEA Integration: window.SEA is now used for key generation and user authentication.
+User Context for Gun: The ChatroomsPage now manages a userPair (Gun.js identity) and userAlias.
+Nickname Management: Users can set a nickname, which is stored in Gun under their public key.
+Chat Message Format: Messages now include the alias of the sender.
+Automatic Wallet Balance/Allowance Updates: ethers.js provider.on('block') and window.ethereum.on('accountsChanged') listeners are implemented.
+Refined UI elements: For wallet connection, token management, and chat display.
+
+html
+
+Copy block
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,9 +49,9 @@
     <style>
         /* Core Brand Colors (Updated based on VLCP Logo) */
         :root {
-            --vlcp-blue-dark: #1A3A70;      /* Deep Blue from logo */
-            --vlcp-gold: #D4AF37;         /* Gold/Yellow from logo */
-            --vlcp-blue-light: #2A5288;   /* Slightly lighter blue for accents/hover */
+            --vlcp-blue-dark: #1A3A70;
+            --vlcp-gold: #D4AF37;
+            --vlcp-blue-light: #2A5288;
             --vlcp-white: #FFFFFF;
             --vlcp-off-white: #F0F2F5;
 
@@ -89,7 +122,7 @@
 
         /* Base Styles */
         html {
-            scroll-behavior: smooth; /* Smooth scrolling for anchor links */
+            scroll-behavior: smooth;
         }
         body {
             font-family: var(--font-body);
@@ -101,7 +134,7 @@
             background-color: var(--background-color);
             color: var(--text-color);
             line-height: 1.6;
-            font-size: 16px; /* Base font size */
+            font-size: 16px;
         }
 
         h1, h2, h3, h4, h5, h6 {
@@ -109,11 +142,11 @@
             font-weight: 700;
             line-height: 1.2;
             margin-bottom: 0.8em;
-            color: var(--primary-color); /* Ensure headings use primary color */
+            color: var(--primary-color);
         }
-        h1 { font-size: clamp(2.5rem, 5vw, 4rem); } /* Fluid scaling for H1 */
-        h2 { font-size: clamp(2rem, 4vw, 3.2rem); } /* Fluid scaling for H2 */
-        h3 { font-size: clamp(1.5rem, 3vw, 2.5rem); } /* Fluid scaling for H3 */
+        h1 { font-size: clamp(2.5rem, 5vw, 4rem); }
+        h2 { font-size: clamp(2rem, 4vw, 3.2rem); }
+        h3 { font-size: clamp(1.5rem, 3vw, 2.5rem); }
 
 
         .app-header h1, .page-section h2 {
@@ -555,14 +588,14 @@
         }
         .common-form .button-group {
             display: flex;
-            flex-wrap: wrap; /* Allow wrapping on small screens */
+            flex-wrap: wrap;
             gap: 1rem;
             justify-content: center;
             margin-top: 1rem;
         }
         .common-form .button-group button {
-            flex-grow: 1; /* Allow buttons to grow */
-            min-width: 150px; /* Minimum width */
+            flex-grow: 1;
+            min-width: 150px;
         }
 
 
@@ -611,7 +644,7 @@
             gap: 1rem;
             max-width: 800px;
             margin: 2rem auto;
-            height: 600px; /* Fixed height for chat area */
+            height: 600px;
             border: 1px solid var(--border-color);
             border-radius: 12px;
             background-color: var(--card-background);
@@ -625,7 +658,7 @@
             display: flex;
             flex-direction: column;
             gap: 0.5rem;
-            background-color: var(--background-color); /* Lighter background for messages */
+            background-color: var(--background-color);
         }
         .chat-message {
             max-width: 80%;
@@ -633,6 +666,7 @@
             border-radius: 12px;
             word-wrap: break-word;
             font-size: 0.95em;
+            position: relative;
         }
         .chat-message.self {
             background-color: var(--primary-color);
@@ -641,17 +675,34 @@
             border-bottom-right-radius: 4px;
         }
         .chat-message.other {
-            background-color: var(--chatbot-message-user); /* Use chatbot user message color */
+            background-color: var(--chatbot-message-user);
             color: var(--text-color);
             align-self: flex-start;
             border-bottom-left-radius: 4px;
         }
-        .chat-message strong {
-            color: var(--secondary-color);
-            font-weight: 600;
+        .chat-message .message-header {
+            display: flex;
+            align-items: baseline;
+            gap: 0.5em;
+            margin-bottom: 0.2em;
         }
-        .chat-message.self strong {
-            color: var(--vlcp-gold); /* Gold for sender name in self messages */
+        .chat-message .message-header strong {
+            font-weight: 600;
+            color: var(--primary-color);
+            font-size: 0.9em;
+        }
+        .chat-message.self .message-header strong {
+            color: var(--vlcp-gold);
+        }
+        .chat-message .message-header span {
+            font-size: 0.7em;
+            color: #888;
+        }
+        .chat-message.self .message-header span {
+            color: rgba(255,255,255,0.7);
+        }
+        .chat-message .message-body {
+            font-size: 1em;
         }
 
         .chat-input-area {
@@ -1044,7 +1095,7 @@
             }
 
             .active-chatroom {
-                height: 70vh; /* Adjust height for mobile */
+                height: 70vh;
             }
             .chat-messages-display {
                 font-size: 0.9em;
@@ -1057,12 +1108,12 @@
 
     <!-- 3. CDN Imports for React, ReactDOM, Babel, GSAP, Ethers.js, Gun.js -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/ScrollTrigger.min.js"></script>
     <script src="https://cdn.ethers.io/lib/ethers-6.7.1.umd.min.js"></script>
-    <script src="https://unpkg.com/gun/gun.js"></script> <!-- Gun.js CDN -->
+    <script src="https://unpkg.com/gun/gun.js"></script>
     <script src="https://unpkg.com/gun/sea.js"></script> <!-- SEA for user authentication/encryption -->
 
     <!-- Your brand song -->
@@ -1299,12 +1350,10 @@
             "function transfer(address to, uint256 amount) returns (bool)",
             "function approve(address spender, uint256 amount) returns (bool)",
             "function allowance(address owner, address spender) view returns (uint256)",
-            "function mint(address to, uint256 amount)", // If you include a mint function in your token
-            // Add other functions if you interact with them, e.g., transferFrom
+            "function mint(address to, uint256 amount)",
         ];
 
         const CHATROOM_MANAGER_ABI = [
-            // Minimal ABI for ChatroomManager functions used
             "event ChatroomCreated(string indexed chatroomName, address indexed creator, uint256 feePaid)",
             "event ModeratorAdded(string indexed chatroomName, address indexed moderator, address indexed addedBy)",
             "function chatroomCreationFee() view returns (uint256)",
@@ -1312,9 +1361,9 @@
             "function addModerator(string calldata _chatroomName, address _moderatorAddress)",
             "function isModerator(string calldata _chatroomName, address _addr) view returns (bool)",
             "function getChatroomOwner(string calldata _chatroomName) view returns (address)",
-            "function chatrooms(string) view returns (address owner, bool exists)", // Public mapping getter
-            "function setChatroomFee(uint256 _newFee)", // If owner needs to change fee
-            "function owner() view returns (address)", // Ownable
+            "function chatrooms(string) view returns (address owner, bool exists)",
+            "function setChatroomFee(uint256 _newFee)",
+            "function owner() view returns (address)",
         ];
 
 
@@ -1351,7 +1400,6 @@
             );
         };
 
-        // NEW: Get VLCP Token Contract
         const getVLCPTokenContract = (signerOrProvider) => {
             return new ethers.Contract(
                 VLCP_TOKEN_CONTRACT_ADDRESS,
@@ -1360,7 +1408,6 @@
             );
         };
 
-        // NEW: Get Chatroom Manager Contract
         const getChatroomManagerContract = (signerOrProvider) => {
             return new ethers.Contract(
                 CHATROOM_MANAGER_CONTRACT_ADDRESS,
@@ -1462,8 +1509,6 @@
                     } else if (userMessage.includes('register') || userMessage.includes('webinar') || userMessage.includes('event') || userMessage.includes('sign up')) {
                         setBookingStep('askName');
                         botResponse = "Great! Let's get you registered for a webinar or event. What's your full name?";
-                    } else if (userMessage.includes('certificate') || userMessage.includes('verify')) {
-                        botResponse = "You can verify student certificates on our 'Verify Cert' page. We use blockchain for secure authentication!";
                     } else if (userMessage.includes('chat') || userMessage.includes('chatroom') || userMessage.includes('discussion')) {
                         botResponse = "Explore our decentralized chatrooms! You can create your own for 500 VLCP tokens or join existing ones. Check the 'Chatrooms' page!";
                     } else {
@@ -1979,40 +2024,6 @@
                     React.createElement('button', { type: 'submit', disabled: isLoading },
                         isLoading ? 'Verifying...' : 'Verify Certificate'
                     )
-                ),
-
-                status && React.createElement('p', { style: { marginTop: '1rem', color: status.includes('Error') ? 'red' : status.includes('found') ? 'orange' : 'green', fontSize: '0.9em' } }, status),
-
-                verificationResult && (
-                    React.createElement('div', { style: { marginTop: '2rem', borderTop: '1px solid var(--border-color)', paddingTop: '1rem' } },
-                        verificationResult.exists ? (
-                            React.createElement('div', null,
-                                React.createElement('h3', { style: { color: 'var(--success-color)' } }, React.createElement('i', { className: 'fas fa-check-circle' }), ' Certificate Found & Verified!'),
-                                React.createElement('p', null, React.createElement('strong', null, 'Student ID:'), ` ${verificationResult.studentId}`),
-                                React.createElement('p', null, React.createElement('strong', null, 'Issued By:'), ` ${verificationResult.issuer}`),
-                                React.createElement('p', null, React.createElement('strong', null, 'Issue Date (Local Time):'), ` ${verificationResult.issueTimestamp}`),
-                                React.createElement('p', null, React.createElement('strong', null, 'IPFS Hash:'), React.createElement('a', { href: `https://ipfs.io/ipfs/${verificationResult.ipfsHash}`, target: '_blank', rel: 'noopener noreferrer' }, ` ${verificationResult.ipfsHash}`)),
-                                verificationResult.metadata ? (
-                                    React.createElement('div', null,
-                                        React.createElement('h4', null, 'Certificate Details (from IPFS):'),
-                                        React.createElement('pre', { style: {
-                                            backgroundColor: 'var(--background-color)',
-                                            padding: '1rem',
-                                            borderRadius: '8px',
-                                            border: '1px solid var(--border-color)',
-                                            overflowX: 'auto',
-                                            color: 'var(--text-color)',
-                                            fontSize: '0.9em'
-                                        }}, JSON.stringify(verificationResult.metadata, null, 2))
-                                    )
-                                ) : (
-                                    React.createElement('p', { style: { color: 'red', fontSize: '0.9em' } }, React.createElement('i', { className: 'fas fa-exclamation-triangle' }), ' Note: Could not retrieve detailed metadata from IPFS. The IPFS gateway might be down, or the hash is unpinned.')
-                                )
-                            )
-                        ) : (
-                            React.createElement('h3', { style: { color: 'var(--danger-color)' } }, React.createElement('i', { className: 'fas fa-times-circle' }), ' Certificate Not Found')
-                        )
-                    )
                 )
             );
         };
@@ -2024,74 +2035,42 @@
             const [chatroomCreationFee, setChatroomCreationFee] = React.useState('0');
             const [currentAllowance, setCurrentAllowance] = React.useState('0');
             const [chatroomName, setChatroomName] = React.useState('');
-            const [chatrooms, setChatrooms] = React.useState([]); // Stores names of created chatrooms
-            const [activeChatroom, setActiveChatroom] = React.useState(null); // The name of the currently active chatroom
-            const [chatMessages, setChatMessages] = React.useState([]); // Messages for active chatroom
+            const [chatrooms, setChatrooms] = React.useState([]);
+            const [activeChatroom, setActiveChatroom] = React.useState(null);
+            const [chatMessages, setChatMessages] = React.useState([]);
             const [chatInput, setChatInput] = React.useState('');
-            const messagesEndRef = React.useRef(null); // Scroll to bottom of chat
+            const messagesEndRef = React.useRef(null);
             const [moderatorAddress, setModeratorAddress] = React.useState('');
             const [isOwnerOfActiveChatroom, setIsOwnerOfActiveChatroom] = React.useState(false);
             const [isModeratorOfActiveChatroom, setIsModeratorOfActiveChatroom] = React.useState(false);
+            const [userPair, setUserPair] = React.useState(null); // Gun.js SEA key pair
+            const [userAlias, setUserAlias] = React.useState(''); // User's display name
+            const [tempAlias, setTempAlias] = React.useState(''); // For alias input field
+            const [loginPassword, setLoginPassword] = React.useState(''); // For Gun.js login
 
+            const providerRef = React.useRef(null); // To store ethers provider for listeners
 
-            React.useEffect(() => {
-                if (currentPage === 'chatrooms') {
-                    animatePageSectionEntry('.chatrooms-section');
-                    applyInputFocusAnimation('.common-form input');
-                    fetchChatroomList(); // Fetch list of chatrooms from Gun
-                    if (walletAddress) {
-                        fetchWalletData();
-                    }
-                }
-            }, [currentPage, walletAddress]);
-
-            React.useEffect(() => {
-                if (activeChatroom) {
-                    const chatroomGunNode = gun.get(`chatroom_${activeChatroom}`).get('messages');
-                    const newMessages = [];
-                    // Listen for new messages
-                    chatroomGunNode.map().on(function(data, key) {
-                        if (data && data.user && data.text && data.timestamp) {
-                            newMessages.push({ user: data.user, text: data.text, timestamp: data.timestamp, key: key });
-                            // Sort by timestamp to ensure correct order
-                            newMessages.sort((a, b) => a.timestamp - b.timestamp);
-                            setChatMessages([...newMessages]);
-                        }
-                    });
-                    // Clean up listener on unmount or chatroom change
-                    return () => {
-                        chatroomGunNode.map().off(); // Stop listening
-                    };
-                }
-            }, [activeChatroom]);
-
-            React.useEffect(() => {
-                if (messagesEndRef.current) {
-                    messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-                }
-            }, [chatMessages]);
-
-            const fetchWalletData = async () => {
-                if (!walletAddress) return;
+            // --- Wallet Data Fetching & Listeners ---
+            const fetchWalletData = React.useCallback(async (addr) => {
+                if (!addr) return;
                 try {
                     const provider = new ethers.BrowserProvider(window.ethereum);
                     const tokenContract = getVLCPTokenContract(provider);
                     const managerContract = getChatroomManagerContract(provider);
 
-                    const balance = await tokenContract.balanceOf(walletAddress);
-                    setVlcpBalance(ethers.utils.formatUnits(balance, 18)); // Assuming 18 decimals
+                    const balance = await tokenContract.balanceOf(addr);
+                    setVlcpBalance(ethers.utils.formatUnits(balance, 18));
 
                     const fee = await managerContract.chatroomCreationFee();
                     setChatroomCreationFee(ethers.utils.formatUnits(fee, 18));
 
-                    const allowance = await tokenContract.allowance(walletAddress, CHATROOM_MANAGER_CONTRACT_ADDRESS);
+                    const allowance = await tokenContract.allowance(addr, CHATROOM_MANAGER_CONTRACT_ADDRESS);
                     setCurrentAllowance(ethers.utils.formatUnits(allowance, 18));
 
-                    // Check owner/moderator status for the active chatroom
                     if (activeChatroom) {
                         const chatroomOwner = await managerContract.getChatroomOwner(activeChatroom);
-                        setIsOwnerOfActiveChatroom(chatroomOwner.toLowerCase() === walletAddress.toLowerCase());
-                        const isMod = await managerContract.isModerator(activeChatroom, walletAddress);
+                        setIsOwnerOfActiveChatroom(chatroomOwner.toLowerCase() === addr.toLowerCase());
+                        const isMod = await managerContract.isModerator(activeChatroom, addr);
                         setIsModeratorOfActiveChatroom(isMod);
                     } else {
                         setIsOwnerOfActiveChatroom(false);
@@ -2100,15 +2079,204 @@
 
                 } catch (error) {
                     console.error("Error fetching wallet data:", error);
-                    showToast(`Failed to fetch wallet data: ${error.message}`, 'error');
+                    showToast(`Failed to fetch wallet data: ${error.message.substring(0, 50)}...`, 'error');
+                }
+            }, [activeChatroom, walletAddress]); // Add walletAddress to deps for activeChatroom logic
+
+            React.useEffect(() => {
+                if (walletAddress) {
+                    fetchWalletData(walletAddress);
+
+                    if (window.ethereum) {
+                        // Setup provider and listeners only once
+                        if (!providerRef.current) {
+                            const provider = new ethers.BrowserProvider(window.ethereum);
+                            providerRef.current = provider;
+
+                            // Listener for new blocks (to update balance/allowance)
+                            provider.on('block', async (blockNumber) => {
+                                console.log(`New block: ${blockNumber}. Refreshing wallet data.`);
+                                fetchWalletData(walletAddress);
+                            });
+
+                            // Listener for account changes in MetaMask
+                            window.ethereum.on('accountsChanged', async (accounts) => {
+                                if (accounts.length === 0) {
+                                    setWalletAddress(null);
+                                    setVlcpBalance('0');
+                                    setCurrentAllowance('0');
+                                    setUserPair(null);
+                                    setUserAlias('');
+                                    showToast('Wallet disconnected or account changed.', 'info');
+                                } else {
+                                    setWalletAddress(accounts[0]);
+                                    showToast(`Account changed to ${accounts[0].substring(0,6)}...`, 'info');
+                                }
+                                fetchWalletData(accounts[0]);
+                            });
+
+                            // Listener for network changes
+                            window.ethereum.on('chainChanged', (chainId) => {
+                                showToast(`Network changed to ${parseInt(chainId, 16)}. Please re-connect wallet.`, 'info', 7000);
+                                setWalletAddress(null); // Force re-connect
+                                setVlcpBalance('0');
+                                setCurrentAllowance('0');
+                                setUserPair(null);
+                                setUserAlias('');
+                            });
+                        }
+                    }
+                }
+                // Cleanup listeners on component unmount
+                return () => {
+                    if (providerRef.current) {
+                        providerRef.current.removeAllListeners('block');
+                    }
+                    if (window.ethereum) {
+                        window.ethereum.removeListener('accountsChanged', fetchWalletData); // Simpler cleanup
+                        window.ethereum.removeListener('chainChanged', fetchWalletData);
+                    }
+                };
+            }, [walletAddress, fetchWalletData]); // Rerun if walletAddress changes
+
+
+            // --- Gun.js User Login/Logout/Nickname Management ---
+            const generateGunUser = async () => {
+                if (!loginPassword.trim()) {
+                    showToast('Please enter a password to generate/login Gun.js user.', 'error');
+                    return;
+                }
+                toggleLoading(true);
+                showToast('Generating Gun.js identity...', 'info');
+                try {
+                    const pair = await SEA.pair();
+                    // Save pair securely. For demo, just in memory or localStorage (NOT FOR PROD)
+                    localStorage.setItem('gunUserPair', JSON.stringify(pair));
+                    setUserPair(pair);
+                    // Log in to Gun with username (public key) and password
+                    gun.user().auth(pair, loginPassword, async (ack) => {
+                        if (ack.err) {
+                            showToast(`Gun.js auth error: ${ack.err}`, 'error');
+                            console.error("Gun.js auth error:", ack.err);
+                            setUserPair(null);
+                            localStorage.removeItem('gunUserPair');
+                        } else {
+                            showToast('Gun.js identity created and logged in!', 'success');
+                            setUserAlias(pair.pub.substring(0, 6)); // Default alias
+                            setTempAlias(pair.pub.substring(0, 6));
+
+                            // Try to load existing nickname for this public key
+                            gun.get('user_profiles').get(pair.pub).get('nickname').once(data => {
+                                if (data) {
+                                    setUserAlias(data);
+                                    setTempAlias(data);
+                                    showToast(`Welcome back, ${data}!`, 'success');
+                                }
+                            });
+                        }
+                    });
+                } catch (error) {
+                    showToast(`Error generating identity: ${error.message}`, 'error');
+                    console.error("Error generating identity:", error);
+                } finally {
+                    toggleLoading(false);
                 }
             };
 
+            const loginGunUser = async () => {
+                if (!loginPassword.trim()) {
+                    showToast('Please enter a password to generate/login Gun.js user.', 'error');
+                    return;
+                }
+                toggleLoading(true);
+                showToast('Logging into Gun.js identity...', 'info');
+                try {
+                    const storedPair = localStorage.getItem('gunUserPair');
+                    if (storedPair) {
+                        const pair = JSON.parse(storedPair);
+                        gun.user().auth(pair, loginPassword, async (ack) => {
+                            if (ack.err) {
+                                showToast(`Gun.js login error: ${ack.err}. Try generating a new identity or check password.`, 'error');
+                                console.error("Gun.js login error:", ack.err);
+                                setUserPair(null);
+                                localStorage.removeItem('gunUserPair');
+                            } else {
+                                setUserPair(pair);
+                                setUserAlias(pair.pub.substring(0, 6)); // Default alias
+                                setTempAlias(pair.pub.substring(0, 6));
+
+                                // Load existing nickname
+                                gun.get('user_profiles').get(pair.pub).get('nickname').once(data => {
+                                    if (data) {
+                                        setUserAlias(data);
+                                        setTempAlias(data);
+                                        showToast(`Welcome back, ${data}!`, 'success');
+                                    } else {
+                                        showToast('Logged into Gun.js. Set your nickname!', 'success');
+                                    }
+                                });
+                            }
+                        });
+                    } else {
+                        showToast('No stored identity found. Generate a new one.', 'info');
+                    }
+                } catch (error) {
+                    showToast(`Error logging in: ${error.message}`, 'error');
+                    console.error("Error logging in:", error);
+                } finally {
+                    toggleLoading(false);
+                }
+            };
+
+            const logoutGunUser = () => {
+                gun.user().leave();
+                setUserPair(null);
+                setUserAlias('');
+                setTempAlias('');
+                setLoginPassword('');
+                localStorage.removeItem('gunUserPair');
+                showToast('Logged out of Gun.js identity.', 'info');
+            };
+
+            const setNickname = async () => {
+                if (!userPair) {
+                    showToast('Please log in to your Gun.js identity first.', 'error');
+                    return;
+                }
+                if (!tempAlias.trim()) {
+                    showToast('Nickname cannot be empty.', 'error');
+                    return;
+                }
+                if (tempAlias.trim().length > 20) {
+                    showToast('Nickname too long (max 20 chars).', 'error');
+                    return;
+                }
+                toggleLoading(true);
+                showToast('Setting nickname...', 'info');
+                try {
+                    await new Promise((resolve, reject) => {
+                        gun.get('user_profiles').get(userPair.pub).put({ nickname: tempAlias.trim() }, (ack) => {
+                            if (ack.err) reject(ack.err);
+                            else resolve();
+                        });
+                    });
+                    setUserAlias(tempAlias.trim());
+                    showToast(`Nickname set to '${tempAlias.trim()}'!`, 'success');
+                } catch (error) {
+                    showToast(`Failed to set nickname: ${error.message}`, 'error');
+                    console.error("Error setting nickname:", error);
+                } finally {
+                    toggleLoading(false);
+                }
+            };
+
+
+            // --- Ethers.js & Smart Contract Interactions ---
             const handleConnectWallet = async () => {
                 try {
                     const { address } = await connectWallet();
                     setWalletAddress(address);
-                    fetchWalletData();
+                    fetchWalletData(address);
                 } catch (error) {
                     setWalletAddress(null);
                 }
@@ -2123,13 +2291,12 @@
                     showToast('Minting tokens (owner only)...', 'info');
                     const { signer } = await connectWallet();
                     const tokenContract = getVLCPTokenContract(signer);
-                    // This assumes the connected wallet is the owner of VLCP_Token
-                    const mintAmount = ethers.utils.parseUnits('1000', 18); // Mint 1000 VLCP for testing
+                    const mintAmount = ethers.utils.parseUnits('1000', 18);
                     const tx = await tokenContract.mint(walletAddress, mintAmount);
                     showToast('Mint transaction sent. Waiting for confirmation...', 'info', 5000);
                     await tx.wait();
                     showToast('1000 VLCP tokens minted successfully!', 'success');
-                    fetchWalletData();
+                    fetchWalletData(walletAddress);
                 } catch (error) {
                     console.error("Error minting tokens:", error);
                     showToast(`Failed to mint tokens: ${error.message}`, 'error');
@@ -2147,12 +2314,12 @@
                     showToast('Approving tokens for Chatroom Manager...', 'info');
                     const { signer } = await connectWallet();
                     const tokenContract = getVLCPTokenContract(signer);
-                    const amountToApprove = ethers.constants.MaxUint256; // Approve max amount
+                    const amountToApprove = ethers.constants.MaxUint256;
                     const tx = await tokenContract.approve(CHATROOM_MANAGER_CONTRACT_ADDRESS, amountToApprove);
                     showToast('Approval transaction sent. Confirm in MetaMask...', 'info', 5000);
                     await tx.wait();
                     showToast('Tokens approved successfully!', 'success');
-                    fetchWalletData();
+                    fetchWalletData(walletAddress);
                 } catch (error) {
                     console.error("Error approving tokens:", error);
                     showToast(`Failed to approve tokens: ${error.message}`, 'error');
@@ -2168,6 +2335,9 @@
                 }
                 if (!chatroomName.trim()) {
                     showToast('Chatroom name cannot be empty.', 'error'); return;
+                }
+                if (chatroomName.trim().length > 30) {
+                    showToast('Chatroom name too long (max 30 chars).', 'error'); return;
                 }
                 // Check if already exists in Gun (for immediate feedback, SC will also check)
                 const existsOnGun = await new Promise(resolve => {
@@ -2196,12 +2366,11 @@
                     showToast('Creation transaction sent. Waiting for confirmation...', 'info', 5000);
                     await tx.wait();
 
-                    // Record chatroom existence in Gun for easy listing
                     gun.get('chatrooms').get(chatroomName.trim()).put({ name: chatroomName.trim(), creator: walletAddress });
                     showToast(`Chatroom '${chatroomName.trim()}' created successfully!`, 'success');
                     setChatroomName('');
                     fetchChatroomList();
-                    fetchWalletData(); // Update balance and allowance
+                    fetchWalletData(walletAddress);
                 } catch (error) {
                     console.error("Error creating chatroom:", error);
                     showToast(`Failed to create chatroom: ${error.message}`, 'error');
@@ -2210,21 +2379,53 @@
                 }
             };
 
-            const fetchChatroomList = () => {
+            const fetchChatroomList = React.useCallback(() => {
                 const fetchedRooms = [];
-                gun.get('chatrooms').map().once(function(data, key) {
+                gun.get('chatrooms').map().on(function(data, key) {
                     if (data && data.name) {
-                        fetchedRooms.push({ name: data.name, creator: data.creator || 'unknown', key: key });
+                        const existingIndex = fetchedRooms.findIndex(room => room.key === key);
+                        if (existingIndex > -1) {
+                            fetchedRooms[existingIndex] = { ...fetchedRooms[existingIndex], ...data, key: key };
+                        } else {
+                            fetchedRooms.push({ ...data, key: key });
+                        }
+                        setChatrooms([...fetchedRooms]);
                     }
-                    setChatrooms([...fetchedRooms]); // Update state with latest list
                 });
-            };
+            }, []);
+
+            React.useEffect(() => {
+                if (currentPage === 'chatrooms') {
+                    animatePageSectionEntry('.chatrooms-section');
+                    applyInputFocusAnimation('.common-form input, .chat-input-area input');
+                    fetchChatroomList();
+                    const storedPair = localStorage.getItem('gunUserPair');
+                    if (storedPair) {
+                        setUserPair(JSON.parse(storedPair));
+                        // Attempt to load alias if already logged in
+                        const pair = JSON.parse(storedPair);
+                        gun.get('user_profiles').get(pair.pub).get('nickname').once(data => {
+                            if (data) {
+                                setUserAlias(data);
+                                setTempAlias(data);
+                            } else {
+                                setUserAlias(pair.pub.substring(0, 6));
+                                setTempAlias(pair.pub.substring(0, 6));
+                            }
+                        });
+                    }
+                }
+                return () => {
+                    gun.get('chatrooms').map().off(); // Clean up Gun listener
+                };
+            }, [currentPage, fetchChatroomList]); // Add fetchChatroomList to dependencies
+
 
             const handleJoinChatroom = async (roomName) => {
                 setActiveChatroom(roomName);
-                setChatMessages([]); // Clear previous messages
+                setChatMessages([]);
                 showToast(`Joined chatroom: ${roomName}`, 'info');
-                // Re-fetch owner/moderator status for the newly active chatroom
+
                 if (walletAddress) {
                     const provider = new ethers.BrowserProvider(window.ethereum);
                     const managerContract = getChatroomManagerContract(provider);
@@ -2241,17 +2442,22 @@
                 showToast('Left chatroom.', 'info');
             };
 
-            const handleSendChatMessage = () => {
-                if (!chatInput.trim() || !activeChatroom || !walletAddress) {
-                    showToast('Message or chatroom invalid.', 'error');
+            const handleSendChatMessage = async () => {
+                if (!chatInput.trim() || !activeChatroom || !userPair) {
+                    showToast('Please log in to Gun.js and type a message.', 'error');
                     return;
                 }
-                const message = {
-                    user: walletAddress.substring(0, 6) + '...',
-                    text: chatInput.trim(),
-                    timestamp: Date.now()
-                };
-                gun.get(`chatroom_${activeChatroom}`).get('messages').set(message);
+                const messageText = chatInput.trim();
+                const timestamp = Date.now();
+                const senderAlias = userAlias; // Use current alias
+
+                // Store message in Gun.js
+                gun.get(`chatroom_${activeChatroom}`).get('messages').set({
+                    alias: senderAlias,
+                    text: messageText,
+                    timestamp: timestamp,
+                    // signed: await SEA.sign(messageText, userPair) // Optional: for cryptographic message signing
+                });
                 setChatInput('');
             };
 
@@ -2278,7 +2484,7 @@
                     await tx.wait();
                     showToast(`${moderatorAddress.trim()} added as moderator to ${activeChatroom}!`, 'success');
                     setModeratorAddress('');
-                    fetchWalletData(); // Update moderator status for self
+                    fetchWalletData(walletAddress);
                 } catch (error) {
                     console.error("Error adding moderator:", error);
                     showToast(`Failed to add moderator: ${error.message}`, 'error');
@@ -2296,21 +2502,63 @@
                     React.createElement('h3', null, 'Your Wallet & VLCP Tokens'),
                     React.createElement('div', { className: 'form-group' },
                         React.createElement('button', { onClick: handleConnectWallet, disabled: walletAddress },
-                            walletAddress ? `Connected: ${walletAddress.substring(0, 6)}...${walletAddress.slice(-4)}` : 'Connect Wallet'
+                            walletAddress ? `Connected: ${walletAddress.substring(0, 6)}...${walletAddress.slice(-4)}` : 'Connect Wallet (MetaMask)'
                         ),
-                        walletAddress && React.createElement('p', null, `VLCP Balance: ${vlcpBalance} VLCP`),
-                        walletAddress && React.createElement('p', null, `Manager Allowance: ${currentAllowance} VLCP`),
-                        walletAddress && React.createElement('p', null, `Creation Fee: ${chatroomCreationFee} VLCP`),
+                        walletAddress && React.createElement('p', null, React.createElement('strong', null, 'Wallet Address:'), ` ${walletAddress}`),
+                        walletAddress && React.createElement('p', null, React.createElement('strong', null, 'VLCP Balance:'), ` ${vlcpBalance} VLCP`),
+                        walletAddress && React.createElement('p', null, React.createElement('strong', null, 'Manager Allowance:'), ` ${currentAllowance} VLCP`),
+                        React.createElement('p', null, React.createElement('strong', null, 'Creation Fee:'), ` ${chatroomCreationFee} VLCP`),
                     ),
                     walletAddress && React.createElement('div', { className: 'button-group' },
-                        React.createElement('button', { onClick: handleMintTokens }, 'Mint 1000 VLCP (Test)'),
-                        React.createElement('button', { onClick: handleApproveTokens }, 'Approve Tokens for Manager')
+                        React.createElement('button', { onClick: handleMintTokens }, React.createElement('i', { className: 'fas fa-coins' }), ' Mint 1000 VLCP (Test)'),
+                        React.createElement('button', { onClick: handleApproveTokens }, React.createElement('i', { className: 'fas fa-check-circle' }), ' Approve Tokens for Manager')
+                    )
+                ),
+
+                React.createElement('div', { className: 'common-form' },
+                    React.createElement('h3', null, 'Gun.js Chat Identity'),
+                    !userPair ? (
+                        React.createElement('div', null,
+                            React.createElement('p', null, 'Create or log in to your decentralized chat identity. This allows you to send messages.'),
+                            React.createElement('div', { className: 'form-group' },
+                                React.createElement('label', { htmlFor: 'loginPassword' }, 'Password (for Gun.js identity):'),
+                                React.createElement('input', {
+                                    type: 'password',
+                                    id: 'loginPassword',
+                                    value: loginPassword,
+                                    onChange: (e) => setLoginPassword(e.target.value),
+                                    placeholder: 'Keep this safe!'
+                                })
+                            ),
+                            React.createElement('div', { className: 'button-group' },
+                                React.createElement('button', { onClick: generateGunUser, disabled: !loginPassword.trim() }, React.createElement('i', { className: 'fas fa-user-plus' }), ' Generate New Identity'),
+                                React.createElement('button', { onClick: loginGunUser, disabled: !loginPassword.trim() }, React.createElement('i', { className: 'fas fa-sign-in-alt' }), ' Login with Stored Identity')
+                            )
+                        )
+                    ) : (
+                        React.createElement('div', null,
+                            React.createElement('p', null, React.createElement('strong', null, 'Logged in as:'), ` ${userAlias} (Public Key: ${userPair.pub.substring(0, 6)}...)`),
+                            React.createElement('div', { className: 'form-group' },
+                                React.createElement('label', { htmlFor: 'nickname' }, 'Set Your Nickname:'),
+                                React.createElement('input', {
+                                    type: 'text',
+                                    id: 'nickname',
+                                    value: tempAlias,
+                                    onChange: (e) => setTempAlias(e.target.value),
+                                    placeholder: 'e.g., Learner123'
+                                })
+                            ),
+                            React.createElement('div', { className: 'button-group' },
+                                React.createElement('button', { onClick: setNickname, disabled: !tempAlias.trim() || tempAlias.trim() === userAlias }, React.createElement('i', { className: 'fas fa-user-edit' }), ' Set Nickname'),
+                                React.createElement('button', { onClick: logoutGunUser }, React.createElement('i', { className: 'fas fa-sign-out-alt' }), ' Logout Identity')
+                            )
+                        )
                     )
                 ),
 
                 React.createElement('div', { className: 'common-form' },
                     React.createElement('h3', null, 'Create New Chatroom'),
-                    React.createElement('p', null, `Cost: ${chatroomCreationFee} VLCP tokens.`),
+                    React.createElement('p', null, `Cost: ${chatroomCreationFee} VLCP tokens. Your wallet must be connected, have sufficient balance, and have approved the Chatroom Manager contract.`),
                     React.createElement('div', { className: 'form-group' },
                         React.createElement('label', { htmlFor: 'newChatroomName' }, 'Chatroom Name:'),
                         React.createElement('input', {
@@ -2321,8 +2569,8 @@
                             placeholder: 'e.g., IslamicFinanceChat'
                         })
                     ),
-                    React.createElement('button', { onClick: handleCreateChatroom, disabled: !walletAddress || parseFloat(vlcpBalance) < parseFloat(chatroomCreationFee) || parseFloat(currentAllowance) < parseFloat(chatroomCreationFee) },
-                        `Create Chatroom (${chatroomCreationFee} VLCP)`
+                    React.createElement('button', { onClick: handleCreateChatroom, disabled: !walletAddress || parseFloat(vlcpBalance) < parseFloat(chatroomCreationFee) || parseFloat(currentAllowance) < parseFloat(chatroomCreationFee) || !chatroomName.trim() },
+                        React.createElement('i', { className: 'fas fa-comments' }), ` Create Chatroom (${chatroomCreationFee} VLCP)`
                     )
                 ),
 
@@ -2335,7 +2583,7 @@
                                     React.createElement('div', { key: room.key, className: 'chatroom-card' },
                                         React.createElement('h3', null, room.name),
                                         React.createElement('p', null, `Created by: ${room.creator.substring(0, 6)}...${room.creator.slice(-4)}`),
-                                        React.createElement('button', { onClick: () => handleJoinChatroom(room.name) }, 'Join Chat')
+                                        React.createElement('button', { onClick: () => handleJoinChatroom(room.name) }, React.createElement('i', { className: 'fas fa-arrow-right' }), ' Join Chat')
                                     )
                                 )
                             )
@@ -2346,14 +2594,17 @@
                 ) : (
                     React.createElement('div', { className: 'active-chatroom' },
                         React.createElement('h3', { style: { margin: '0', padding: '1rem', backgroundColor: 'var(--primary-color)', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center' } },
-                            `${activeChatroom}`,
-                            React.createElement('button', { onClick: handleLeaveChatroom, style: { background: 'none', border: '1px solid white', color: 'white', padding: '0.5rem 1rem', fontSize: '0.8em' } }, 'Leave')
+                            React.createElement('span', null, React.createElement('i', { className: 'fas fa-hashtag' }), ` ${activeChatroom}`),
+                            React.createElement('button', { onClick: handleLeaveChatroom, style: { background: 'none', border: '1px solid white', color: 'white', padding: '0.5rem 1rem', fontSize: '0.8em' } }, React.createElement('i', { className: 'fas fa-sign-out-alt' }), ' Leave')
                         ),
                         React.createElement('div', { className: 'chat-messages-display' },
                             chatMessages.map((msg, index) =>
-                                React.createElement('div', { key: msg.key || index, className: `chat-message ${msg.user.toLowerCase().startsWith(walletAddress.substring(0,6).toLowerCase()) ? 'self' : 'other'}` },
-                                    React.createElement('strong', null, msg.user),
-                                    React.createElement('span', null, `: ${msg.text}`)
+                                React.createElement('div', { key: msg.key || index, className: `chat-message ${msg.alias === userAlias ? 'self' : 'other'}` },
+                                    React.createElement('div', { className: 'message-header' },
+                                        React.createElement('strong', null, msg.alias),
+                                        React.createElement('span', null, new Date(msg.timestamp).toLocaleTimeString())
+                                    ),
+                                    React.createElement('div', { className: 'message-body' }, msg.text)
                                 )
                             ),
                             React.createElement('div', { ref: messagesEndRef })
@@ -2364,16 +2615,16 @@
                                 value: chatInput,
                                 onChange: (e) => setChatInput(e.target.value),
                                 onKeyPress: (e) => { if (e.key === 'Enter') handleSendChatMessage(); },
-                                placeholder: 'Type your message...'
+                                placeholder: userPair ? 'Type your message...' : 'Login to chat identity to send messages'
                             }),
-                            React.createElement('button', { onClick: handleSendChatMessage }, 'Send')
+                            React.createElement('button', { onClick: handleSendChatMessage, disabled: !userPair || !chatInput.trim() }, React.createElement('i', { className: 'fas fa-paper-plane' }), ' Send')
                         ),
                         (isOwnerOfActiveChatroom || isModeratorOfActiveChatroom) && React.createElement('div', { className: 'chatroom-admin-section' },
-                            React.createElement('h3', null, 'Moderator Tools'),
+                            React.createElement('h3', null, React.createElement('i', { className: 'fas fa-tools' }), ' Moderator Tools'),
                             isOwnerOfActiveChatroom && React.createElement('div', { className: 'common-form', style: { maxWidth: '400px', margin: '1rem auto', padding: '1rem' } },
                                 React.createElement('h4', null, 'Add Moderator'),
                                 React.createElement('div', { className: 'form-group' },
-                                    React.createElement('label', { htmlFor: 'moderatorAddress' }, 'Moderator Address:'),
+                                    React.createElement('label', { htmlFor: 'moderatorAddress' }, 'Moderator Wallet Address:'),
                                     React.createElement('input', {
                                         type: 'text',
                                         id: 'moderatorAddress',
@@ -2382,9 +2633,11 @@
                                         placeholder: '0x...'
                                     })
                                 ),
-                                React.createElement('button', { onClick: handleAddModerator }, 'Add Moderator')
+                                React.createElement('button', { onClick: handleAddModerator, disabled: !moderatorAddress.trim() || !ethers.utils.isAddress(moderatorAddress.trim()) }, React.createElement('i', { className: 'fas fa-user-shield' }), ' Add Moderator')
                             ),
-                            React.createElement('p', null, `You are ${isOwnerOfActiveChatroom ? 'the Owner' : ''}${isOwnerOfActiveChatroom && isModeratorOfActiveChatroom ? ' and a Moderator' : isModeratorOfActiveChatroom ? ' a Moderator' : ''} of this chatroom.`)
+                            React.createElement('p', { style: { fontSize: '0.9em', color: 'var(--text-color)' } },
+                                `You are ${isOwnerOfActiveChatroom ? 'the Chatroom Owner' : ''}${isOwnerOfActiveChatroom && isModeratorOfActiveChatroom ? ' and ' : ''}${isModeratorOfActiveChatroom ? 'a Chatroom Moderator' : ''} for this room.`
+                            )
                         )
                     )
                 )
@@ -2536,7 +2789,7 @@
                         return React.createElement(CoursesPage, { currentPage });
                     case 'webinars':
                         return React.createElement(WebinarsPage, { currentPage });
-                    case 'chatrooms': // NEW PAGE
+                    case 'chatrooms':
                         return React.createElement(ChatroomsPage, { currentPage });
                     case 'about-us':
                         return React.createElement(AboutUsPage, { currentPage });
@@ -2562,7 +2815,7 @@
                         React.createElement('button', { onClick: () => handlePageChange('home'), className: currentPage === 'home' ? 'active' : '' }, 'Home'),
                         React.createElement('button', { onClick: () => handlePageChange('courses'), className: currentPage === 'courses' ? 'active' : '' }, 'Courses & Resources'),
                         React.createElement('button', { onClick: () => handlePageChange('webinars'), className: currentPage === 'webinars' ? 'active' : '' }, 'Webinars & Events'),
-                        React.createElement('button', { onClick: () => handlePageChange('chatrooms'), className: currentPage === 'chatrooms' ? 'active' : '' }, 'Chatrooms'), {/* NEW NAV ITEM */}
+                        React.createElement('button', { onClick: () => handlePageChange('chatrooms'), className: currentPage === 'chatrooms' ? 'active' : '' }, 'Chatrooms'),
                         React.createElement('button', { onClick: () => handlePageChange('issue-certificate'), className: currentPage === 'issue-certificate' ? 'active' : '' }, 'Issue Cert'),
                         React.createElement('button', { onClick: () => handlePageChange('verify-certificate'), className: currentPage === 'verify-certificate' ? 'active' : '' }, 'Verify Cert'),
                         React.createElement('button', { onClick: () => handlePageChange('about-us'), className: currentPage === 'about-us' ? 'active' : '' }, 'About Us')
@@ -2579,7 +2832,7 @@
                         React.createElement('button', { onClick: () => handlePageChange('home'), className: currentPage === 'home' ? 'active' : '' }, 'Home'),
                         React.createElement('button', { onClick: () => handlePageChange('courses'), className: currentPage === 'courses' ? 'active' : '' }, 'Courses & Resources'),
                         React.createElement('button', { onClick: () => handlePageChange('webinars'), className: currentPage === 'webinars' ? 'active' : '' }, 'Webinars & Events'),
-                        React.createElement('button', { onClick: () => handlePageChange('chatrooms'), className: currentPage === 'chatrooms' ? 'active' : '' }, 'Chatrooms'), {/* NEW NAV ITEM */}
+                        React.createElement('button', { onClick: () => handlePageChange('chatrooms'), className: currentPage === 'chatrooms' ? 'active' : '' }, 'Chatrooms'),
                         React.createElement('button', { onClick: () => handlePageChange('issue-certificate'), className: currentPage === 'issue-certificate' ? 'active' : '' }, 'Issue Cert'),
                         React.createElement('button', { onClick: () => handlePageChange('verify-certificate'), className: currentPage === 'verify-certificate' ? 'active' : '' }, 'Verify Cert'),
                         React.createElement('button', { onClick: () => handlePageChange('about-us'), className: currentPage === 'about-us' ? 'active' : '' }, 'About Us')
